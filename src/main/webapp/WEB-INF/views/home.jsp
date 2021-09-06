@@ -3,8 +3,6 @@
 
 <%@ include file="layout/header.jsp"%>
 
-
-<h1>${sessionScope.principal.username}</h1>
-<!-- <h1>${requestScope.principal.getusername}</h1>		구지 잘 적지않음  -->
+<h1>${sessionScope.principal.getUsername()}</h1>
 
 <%@ include file="layout/footer.jsp"%>

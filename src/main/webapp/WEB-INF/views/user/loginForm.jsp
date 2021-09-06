@@ -4,11 +4,14 @@
 <%@ include file="../layout/header.jsp"%>
 
 <div class="container">
-  <form class="form-inline" action="/login" method="post">
-    <input type="text" class="form-control" placeholder="Enter username">
-    <input type="password" class="form-control" placeholder="Enter password">
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
+   <form action="/login" method="post">
+      <div class="form-group">
+         <input type="text" name="username" class="form-control" placeholder="Enter UserName" required="required">
+      </div>
+      <div class="form-group">
+         <input type="password" name="password" class="form-control" placeholder="Enter password" required="required">
+      </div>
+      <button type="submit" class="btn btn-primary">로그인</button>
+   </form>
 </div>
-
 <%@ include file="../layout/footer.jsp"%>
