@@ -18,10 +18,10 @@
   <p>사이트 버튼 클릭해주시기 바랍니다.</p>
   <ul class="nav flex-column">
     <li class="nav-item">
-      <a class="nav-link" href="#">로그인</a>
+      <a class="nav-link" href="/loginForm">로그인</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="#">회원가입</a>
+      <a class="nav-link" href="/joinForm">회원가입</a>
     </li>
   </ul>
 </div>
