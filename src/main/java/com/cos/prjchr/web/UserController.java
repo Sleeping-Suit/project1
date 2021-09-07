@@ -71,6 +71,10 @@ public class UserController {
 	@PostMapping("/join")
 	public String join(JoinReqDto dto) {
 		
+		if(dto.getUsername() == null || dto.getPassword() == null || dto.getEmail() == null || !dto.getUsername().equals("") || !dto.getPassword().equals("") || !dto.getEmail().equals("")) {
+			return "error/error";
+		}
+		
 		userRepository.save(dto.toEntity());
 		
 		return "redirect:/loginForm";
