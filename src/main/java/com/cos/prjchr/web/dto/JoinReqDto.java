@@ -1,5 +1,8 @@
 package com.cos.prjchr.web.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 import com.cos.prjchr.domain.user.User;
 
 import lombok.AllArgsConstructor;
@@ -10,13 +13,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JoinReqDto {
+	@Size(min = 2, max = 20)
+	@NotBlank
 	private String username;
+	
+	@Size(min = 4, max = 20)
+	@NotBlank
 	private String password;
+	
+	@Size(min = 4, max = 50)
+	@NotBlank
 	private String email;
 
 	public User toEntity() {
 		User user = new User();
-		user.setId(1);
 		user.setUsername(username);
 		user.setPassword(password);
 		user.setEmail(email);

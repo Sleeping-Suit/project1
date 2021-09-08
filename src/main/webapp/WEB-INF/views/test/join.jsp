@@ -7,7 +7,6 @@
 <title>Insert title here</title>
 </head>
 <body>
-<h1>잘못된 접근입니다.</h1>
-${errorMap}
+<h1>test join page</h1>
 </body>
 </html>

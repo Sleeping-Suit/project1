@@ -12,7 +12,7 @@
          <input type="password" name="password" class="form-control" placeholder="Enter password" required="required">
       </div>
       <div class="from-group">
-         <input type="email" name="email" class="form-control" placeholder="Enter email" required="required">
+         <input type="email" name="email" class="form-control" placeholder="Enter email">
       </div>
       <button type="submit" class="btn btn-primary">회원가입</button>
    </form>
