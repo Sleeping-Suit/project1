@@ -29,10 +29,6 @@ public class UserController {
 	private final UserRepository userRepository;
 	private final HttpSession session;
 
-	@GetMapping({"/", "/home"})
-	public String home() {
-		return "home";
-	}
 
 	@GetMapping("/loginForm")
 	public String loginForm() {
