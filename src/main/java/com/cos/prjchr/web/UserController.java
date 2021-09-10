@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cos.prjchr.domain.user.User;
 import com.cos.prjchr.domain.user.UserRepository;
+import com.cos.prjchr.util.MyAlgorithm;
+import com.cos.prjchr.util.SHA;
 import com.cos.prjchr.util.Script;
 import com.cos.prjchr.web.dto.JoinReqDto;
 import com.cos.prjchr.web.dto.LoginReqDto;
@@ -57,11 +59,12 @@ public class UserController {
 		System.out.println(dto.getUsername());
 		System.out.println(dto.getPassword());
 		// 2. DB -> 조회
-		User userEntity =  userRepository.mLogin(dto.getUsername(), dto.getPassword());
+		User userEntity =  userRepository.mLogin(dto.getUsername(), SHA.encrypt(dto.getPassword(), MyAlgorithm.SHA256));
 		
 		if(userEntity == null) {		// username,password 잘못 기입
 			return Script.back("아이디 혹은 비밀번호를 잘못 입력하였습니다.");
 		}else {
+			// 세션 날라가는 조건: 1. session.invailidate() - 로그아웃, 2. 브라우저를 닫으면 날라감
 			session.setAttribute("principal", userEntity);
 			return Script.href("/", "로그인 성공");
 		}
@@ -69,6 +72,8 @@ public class UserController {
 	
 	@PostMapping("/join")
 	public @ResponseBody String join(@Valid JoinReqDto dto, BindingResult bindingResult) { // username=love&password=1234&email=love@nate.com
+		
+		
 		
 		// 1. 유효성 검사 실패 - 자바스크립트 응답(경고창, 뒤로가기)
 		// 2. 정상 - 로그인 페이지
@@ -87,6 +92,9 @@ public class UserController {
 		}
 		//---------------------------------------------------------------------공통함수
 		
+		String encPassword = SHA.encrypt(dto.getPassword(), MyAlgorithm.SHA256);
+		
+		dto.setPassword(encPassword);
 		userRepository.save(dto.toEntity());
 		return Script.href("/loginForm"); // 리다이렉션 (300)
 	}
