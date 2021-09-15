@@ -1,5 +1,6 @@
 package com.cos.prjchr.domain.board;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -23,8 +24,9 @@ import lombok.NoArgsConstructor;
 	public class Board {
 		@Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
-		private int id;
-		private String title;
+		private int id;					// PK 자동증가번호
+		@Column(nullable = false, length = 50)
+		private String title;			// 아이디
 		@Lob
 		private String content;
 

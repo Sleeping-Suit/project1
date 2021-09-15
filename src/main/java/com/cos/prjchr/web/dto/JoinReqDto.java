@@ -17,11 +17,11 @@ public class JoinReqDto {
 	@NotBlank
 	private String username;
 	
-	@Size(min = 4, max = 20)
+	@Size(min = 4, max = 50)
 	@NotBlank
 	private String password;
 	
-	@Size(min = 4, max = 50)
+	@Size(min = 4, max = 70)
 	@NotBlank
 	private String email;
 
