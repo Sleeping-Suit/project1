@@ -2,7 +2,6 @@ package com.cos.prjchr.web;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
@@ -36,6 +35,16 @@ public class BoardController {
 	private final BoardRepository boardRepository;
 	private final HttpSession session;
 
+	// DELETE FROM board WHERE id = ?
+//	@DeleteMapping("/board/delete?id=1")
+//	
+//	// UPDATE TABLE board SET title = ?, content =? WHERE id = ?
+//	@PutMapping("/board/{id}")
+	
+	// RestFul API 주소 설계 방식
+	
+	
+	
 	// 쿼리스트링, 패스var => 디비 where 에 걸리는 친구들!!
 	// 1. 컨트롤러 선정, 2. Http Method 선정, 3. 받을 데이터가 있는지!! (body, 쿼리스트링, 패스var)
 	// 4. 디비에 접근을 해야하면 Model 접근하기 orElse Model에 접근할 필요가 없다.
