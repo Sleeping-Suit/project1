@@ -41,9 +41,9 @@ public class BoardController {
 	// DELETE FROM board WHERE id = ?
 	@DeleteMapping("/board/{id}")
 //	public @ResponseBody String deleteById(@PathVariable int id) {
-//		boardRepository.deleteById(id);
-//		return "ok"; // @ResponseBody 데이터 리턴!! String = text/plain
-//	}
+//	boardRepository.deleteById(id);
+//	return "ok"; // @ResponseBody 데이터 리턴!! String = text/plain
+//}
 	public @ResponseBody CMRespDto<String> deleteById(@PathVariable int id) {
 
 		// 인증이 된 사람만 함수 접근 가능!! (로그인 된 사람)
@@ -64,7 +64,6 @@ public class BoardController {
 		} catch (Exception e) {
 			throw new MyAsyncNotFoundException(id+"를 찾을 수 없어서 삭제할 수 없어요.");
 		}
-
 
 		return new CMRespDto<String>(1, "성공", null); // @ResponseBody 데이터 리턴!! String
 	}
