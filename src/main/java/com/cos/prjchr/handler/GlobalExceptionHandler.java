@@ -4,8 +4,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cos.prjchr.handler.ex.MyAsyncNotFoundException;
 import com.cos.prjchr.handler.ex.MyNotFoundException;
 import com.cos.prjchr.util.Script;
+import com.cos.prjchr.web.dto.CMRespDto;
 
 // @ControllerAdvice는 1. 익셉션핸들링, 2. 컨트롤러의 역할까지 함
 @ControllerAdvice
@@ -17,5 +19,11 @@ public class GlobalExceptionHandler {
 	public @ResponseBody String error1(MyNotFoundException e) {
 		System.out.println("오류 터졌어 : " + e.getMessage());
 		return Script.href("/", "게시글 id를 찾을 수 없습니다.");
+	}
+	
+	@ExceptionHandler(value = MyAsyncNotFoundException.class)
+	public @ResponseBody CMRespDto<String> error2(MyAsyncNotFoundException e) {
+		System.out.println("오류 터졌어 : "+e.getMessage());
+		return new CMRespDto<String>(-1, e.getMessage(), null);
 	}
 }

@@ -15,11 +15,24 @@
 				}); // 약속 - 어음 (10초)
 				
 				// 2.코드
-				let parseResponse = await response.text();
+/*  			let parseResponse = await response.text();
 				console.log(parseResponse);
 				
 				alert("삭제 성공");
-				location.href="/";
+				location.href="/"; */
+				
+				// json() 함수는 json처럼 생긴 문자열을 자바스크립트 오브젝트로 변환해준다.
+				let parseResponse = await response.json();
+				console.log(parseResponse); 
+				
+ 				if(parseResponse.code == 1){
+					alert("삭제 성공");
+					location.href="/";
+				}else{
+					alert(parseResponse.msg);
+					location.href="/";
+				}
+							
 				// 3.코드
 			}
 			
