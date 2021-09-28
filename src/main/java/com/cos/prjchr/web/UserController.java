@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cos.prjchr.domain.user.User;
 import com.cos.prjchr.domain.user.UserRepository;
+import com.cos.prjchr.handler.ex.MyAsyncNotFoundException;
 import com.cos.prjchr.util.MyAlgorithm;
 import com.cos.prjchr.util.SHA;
 import com.cos.prjchr.util.Script;
+import com.cos.prjchr.web.dto.CMRespDto;
 import com.cos.prjchr.web.dto.JoinReqDto;
 import com.cos.prjchr.web.dto.LoginReqDto;
+import com.cos.prjchr.web.dto.UserUpdateDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +34,36 @@ public class UserController {
 	private final UserRepository userRepository;
 	private final HttpSession session;
 
+	@PostMapping("/user/{id}")
+	public @ResponseBody CMRespDto<String>update(@PathVariable int id, @Valid UserUpdateDto dto, BindingResult bindingResult) {
+		 // 유효성
+	      if (bindingResult.hasErrors()) {
+	         Map<String, String> errorMap = new HashMap<>();
+	         for (FieldError error : bindingResult.getFieldErrors()) {
+	            errorMap.put(error.getField(), error.getDefaultMessage());
+	         }
+	         throw new MyAsyncNotFoundException(errorMap.toString());
+	      }
+	      
+	      // 인증
+	      User principal = (User) session.getAttribute("principal");
+	      if (principal == null) { // 로그인 안됨
+	         throw new MyAsyncNotFoundException("인증이 되지 않았습니다");
+	      }
+	      
+	      // 권한
+	      if(principal.getId()!=id) {
+	    	  throw new MyAsyncNotFoundException("회원정보를 수정할 권한이 없습니다.");
+	      }
+	      
+	      // 핵심로직
+	      principal.setEmail(dto.getEmail());
+	      session.setAttribute("principal", principal);
+	      userRepository.save(principal);
+	      
+	      return new CMRespDto<>(1, "성공", null);
+	}
+	
 	@GetMapping("/user/{id}")
 	public String userinfo(@PathVariable int id) {
 		// 기본은 userRepository.findById(id) DB에서 가져와야 함.

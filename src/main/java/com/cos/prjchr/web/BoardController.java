@@ -44,6 +44,7 @@ public class BoardController {
 	   public @ResponseBody CMRespDto<String> update(@PathVariable int id, @RequestBody @Valid BoardSaveReqDto dto,
 	         BindingResult bindingResult) {
 
+		 // 유효성
 	      if (bindingResult.hasErrors()) {
 	         Map<String, String> errorMap = new HashMap<>();
 	         for (FieldError error : bindingResult.getFieldErrors()) {

@@ -43,7 +43,7 @@
        			}
        		});
        		
-       		let parseResponse = await response.json(); // 나중에 스프링함수에서 리턴될때 머가 리턴되는지 확인해보자!!
+       		let parseResponse = await response.json(); // 나중에 스프링함수에서 리턴될때 뭐가 리턴되는지 확인해보자!!
        		
        		// response.text()로 변경해서 확인해보자.
        		console.log(parseResponse);
