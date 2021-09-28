@@ -41,23 +41,38 @@ public class BoardController {
 	private final HttpSession session;
 	
 	@PutMapping("/board/{id}")
-	public @ResponseBody CMRespDto<String> update(@PathVariable int id,  @RequestBody @Valid BoardSaveReqDto dto, BindingResult bindingResult) {
+	   public @ResponseBody CMRespDto<String> update(@PathVariable int id, @RequestBody @Valid BoardSaveReqDto dto,
+	         BindingResult bindingResult) {
 
-		// 인증
+	      if (bindingResult.hasErrors()) {
+	         Map<String, String> errorMap = new HashMap<>();
+	         for (FieldError error : bindingResult.getFieldErrors()) {
+	            errorMap.put(error.getField(), error.getDefaultMessage());
+	         }
+	         throw new MyAsyncNotFoundException(errorMap.toString());
+	      }
 
-		// 권한
+	      // 인증
+	      User principal = (User) session.getAttribute("principal");
+	      if (principal == null) { // 로그인 안됨
+	         throw new MyAsyncNotFoundException("인증이 되지 않았습니다");
+	      }
+	      
+	      // 권한
+	      Board boardEntity = boardRepository.findById(id)
+	            .orElseThrow(()-> new MyAsyncNotFoundException("해당 게시글을 찾을 수 없습니다."));
+	      
+	      if(principal.getId() != boardEntity.getUser().getId()) {
+	         throw new MyAsyncNotFoundException("해당 게시글의 주인이 아닙니다.");
+	      }
 
-		// 유효성 검사
+	      Board board = dto.toEntity(principal);
+	      board.setId(id); // update의 핵심
 
-		User principal = (User) session.getAttribute("principal");
+	      boardRepository.save(board);
 
-		Board board = dto.toEntity(principal);
-		board.setId(id); // update의 핵심
-
-		boardRepository.save(board);
-
-		return new CMRespDto<>(1, "업데이트 성공", null);
-	}
+	      return new CMRespDto<>(1, "업데이트 성공", null);
+	   }
 	
 	@GetMapping("/board/{id}/updateForm")
 	public String boardUpdateForm(@PathVariable int id, Model model) {
