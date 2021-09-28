@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cos.prjchr.domain.board.Board;
@@ -37,42 +39,99 @@ public class BoardController {
 	// DI
 	private final BoardRepository boardRepository;
 	private final HttpSession session;
+	
+	@PutMapping("/board/{id}")
+	public @ResponseBody CMRespDto<String> update(@PathVariable int id,  @RequestBody @Valid BoardSaveReqDto dto, BindingResult bindingResult) {
+
+		// 인증
+
+		// 권한
+
+		// 유효성 검사
+
+		User principal = (User) session.getAttribute("principal");
+
+		Board board = dto.toEntity(principal);
+		board.setId(id); // update의 핵심
+
+		boardRepository.save(board);
+
+		return new CMRespDto<>(1, "업데이트 성공", null);
+	}
+	
+	@GetMapping("/board/{id}/updateForm")
+	public String boardUpdateForm(@PathVariable int id, Model model) {
+
+		// 게시글 정보를 가지고 가야함.
+		Board boardEntity = boardRepository.findById(id).orElseThrow(()-> new MyNotFoundException(id+"번호의 게시글을 찾을 수 없습니다."));
+		
+		model.addAttribute("boardEntity", boardEntity);
+		return "board/updateForm";
+	}
 
 	// DELETE FROM board WHERE id = ?
-	@DeleteMapping("/board/{id}")
-//	public @ResponseBody String deleteById(@PathVariable int id) {
-//	boardRepository.deleteById(id);
-//	return "ok"; // @ResponseBody 데이터 리턴!! String = text/plain
-//}
-	public @ResponseBody CMRespDto<String> deleteById(@PathVariable int id) {
+//	@DeleteMapping("/board/{id}")
+////	public @ResponseBody String deleteById(@PathVariable int id) {
+////	boardRepository.deleteById(id);
+////	return "ok"; // @ResponseBody 데이터 리턴!! String = text/plain
+////}
+//	public @ResponseBody CMRespDto<String> deleteById(@PathVariable int id) {
+//
+//		// 인증이 된 사람만 함수 접근 가능!! (로그인 된 사람)
+//		User principal = (User) session.getAttribute("principal");
+//		if(principal == null) {
+//			throw new MyAsyncNotFoundException("인증이 되지 않았습니다.");
+//		}
+//
+//		// 권한이 있는 사람만 함수 접근 가능(principal.id == {id})
+//		Board boardEntity = boardRepository.findById(id)
+//			.orElseThrow(()-> new MyAsyncNotFoundException("해당글을 찾을 수 없습니다."));
+//		if(principal.getId() != boardEntity.getUser().getId()) {
+//			throw new MyAsyncNotFoundException("해당글을 삭제할 권한이 없습니다.");
+//		}
 
-		// 인증이 된 사람만 함수 접근 가능!! (로그인 된 사람)
-		User principal = (User) session.getAttribute("principal");
-		if(principal == null) {
-			throw new MyAsyncNotFoundException("인증이 되지 않았습니다.");
-		}
-
-		// 권한이 있는 사람만 함수 접근 가능(principal.id == {id})
-		Board boardEntity = boardRepository.findById(id)
-			.orElseThrow(()-> new MyAsyncNotFoundException("해당글을 찾을 수 없습니다."));
-		if(principal.getId() != boardEntity.getUser().getId()) {
-			throw new MyAsyncNotFoundException("해당글을 삭제할 권한이 없습니다.");
-		}
-
-		try {
-			boardRepository.deleteById(id); // 오류 발생??? (id가 없으면) 
-		} catch (Exception e) {
-			throw new MyAsyncNotFoundException(id+"를 찾을 수 없어서 삭제할 수 없어요.");
-		}
-
-		return new CMRespDto<String>(1, "성공", null); // @ResponseBody 데이터 리턴!! String
-	}
+	
+	
+//		try {
+//			boardRepository.deleteById(id); // 오류 발생??? (id가 없으면) 
+//		} catch (Exception e) {
+//			throw new MyAsyncNotFoundException(id+"를 찾을 수 없어서 삭제할 수 없어요.");
+//		}
+//		return new CMRespDto<String>(1, "성공", null); // @ResponseBody 데이터 리턴!! String
+//	}
 	
 //	
 //	// UPDATE TABLE board SET title = ?, content =? WHERE id = ?
 //	@PutMapping("/board/{id}")
 	
-	// RestFul API 주소 설계 방식
+	// API(AJAX) 요청
+	@DeleteMapping("/board/{id}")
+	public @ResponseBody CMRespDto<String> deleteById(@PathVariable int id) {
+
+		// 인증이 된 사람만 함수 접근 가능!! (로그인 된 사람)
+		User principal = (User) session.getAttribute("principal");
+		if (principal == null) {
+			throw new MyAsyncNotFoundException("인증이 되지 않았습니다.");
+		}
+
+		// 권한이 있는 사람만 함수 접근 가능(principal.id == {id})
+		Board boardEntity = boardRepository.findById(id)
+				.orElseThrow(() -> new MyAsyncNotFoundException("해당글을 찾을 수 없습니다."));
+
+		if (principal.getId() != boardEntity.getUser().getId()) {
+			throw new MyAsyncNotFoundException("해당글을 삭제할 권한이 없습니다.");
+		}
+
+		try {
+			boardRepository.deleteById(id); // 오류 발생??? (id가 없으면)
+		} catch (Exception e) {
+			throw new MyAsyncNotFoundException(id + "를 찾을 수 없어서 삭제할 수 없어요.");
+		}
+
+		return new CMRespDto<String>(1, "성공", null); // @ResponseBody 데이터 리턴!! String
+	}
+	
+	
 	
 	
 	
