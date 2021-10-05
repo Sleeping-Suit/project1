@@ -15,10 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cos.prjchr.domain.user.User;
-import com.cos.prjchr.domain.user.UserRepository;
 import com.cos.prjchr.handler.ex.MyAsyncNotFoundException;
-import com.cos.prjchr.util.MyAlgorithm;
-import com.cos.prjchr.util.SHA;
+import com.cos.prjchr.service.UserService;
 import com.cos.prjchr.util.Script;
 import com.cos.prjchr.web.dto.CMRespDto;
 import com.cos.prjchr.web.dto.JoinReqDto;
@@ -31,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @Controller
 public class UserController {
 
-	private final UserRepository userRepository;
+	private final UserService userService;
 	private final HttpSession session;
 
 	@PostMapping("/user/{id}")
@@ -57,9 +55,8 @@ public class UserController {
 	      }
 	      
 	      // 핵심로직
-	      principal.setEmail(dto.getEmail());
 	      session.setAttribute("principal", principal);
-	      userRepository.save(principal);
+	      userService.회원수정(principal, dto);
 	      
 	      return new CMRespDto<>(1, "성공", null);
 	}
@@ -106,7 +103,7 @@ public class UserController {
 		System.out.println(dto.getPassword());
 
 		// 2. DB -> 조회
-		User userEntity = userRepository.mLogin(dto.getUsername(), SHA.encrypt(dto.getPassword(), MyAlgorithm.SHA256));
+		User userEntity = userService.로그인(dto);
 
 		if (userEntity == null) { // username,password 잘못 기입
 			return Script.back("아이디 혹은 비밀번호를 잘못 입력하였습니다.");
@@ -137,10 +134,8 @@ public class UserController {
 		}
 		// ---------------------------------------------------------------------공통함수
 
-		String encPassword = SHA.encrypt(dto.getPassword(), MyAlgorithm.SHA256);
 
-		dto.setPassword(encPassword);
-		userRepository.save(dto.toEntity());
+		userService.회원가입(dto);
 		return Script.href("/loginForm"); // 리다이렉션 (300)
 	}
 

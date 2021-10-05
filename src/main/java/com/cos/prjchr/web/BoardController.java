@@ -6,9 +6,6 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,13 +18,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.cos.prjchr.domain.board.Board;
-import com.cos.prjchr.domain.board.BoardRepository;
 import com.cos.prjchr.domain.comment.Comment;
-import com.cos.prjchr.domain.comment.CommentRepository;
 import com.cos.prjchr.domain.user.User;
 import com.cos.prjchr.handler.ex.MyAsyncNotFoundException;
-import com.cos.prjchr.handler.ex.MyNotFoundException;
+import com.cos.prjchr.service.BoardService;
 import com.cos.prjchr.util.Script;
 import com.cos.prjchr.web.dto.BoardSaveReqDto;
 import com.cos.prjchr.web.dto.CMRespDto;
@@ -40,8 +34,7 @@ import lombok.RequiredArgsConstructor;
 public class BoardController {
 
 	// DI
-	private final BoardRepository boardRepository;
-	private final CommentRepository commentRepository;
+	private final BoardService boardService;
 	private final HttpSession session;
 
 	@PostMapping("/board/{boardId}/comment")
@@ -55,16 +48,9 @@ public class BoardController {
 		// 3. Comment 객체에 값 추가하기 , id : X, content: DTO값, user: 세션값, board: boardId로
 		// findById하세요
 		User principal = (User) session.getAttribute("principal");
-		Board boardEntity = boardRepository.findById(boardId)
-				.orElseThrow(() -> new MyNotFoundException("해당 게시글을 찾을 수 없습니다."));
-
-		comment.setContent(dto.getContent());
-		comment.setUser(principal);
-		comment.setBoard(boardEntity);
 
 		// 4. save 하기
-		commentRepository.save(comment);
-
+		boardService.댓글등록(boardId, dto, principal);
 		return "redirect:/board/" + boardId;
 	}
 
@@ -72,34 +58,12 @@ public class BoardController {
 	public @ResponseBody CMRespDto<String> update(@PathVariable int id, @RequestBody @Valid BoardSaveReqDto dto,
 			BindingResult bindingResult) {
 
-		// 유효성
-		if (bindingResult.hasErrors()) {
-			Map<String, String> errorMap = new HashMap<>();
-			for (FieldError error : bindingResult.getFieldErrors()) {
-				errorMap.put(error.getField(), error.getDefaultMessage());
-			}
-			throw new MyAsyncNotFoundException(errorMap.toString());
-		}
-
-		// 인증
 		User principal = (User) session.getAttribute("principal");
-		if (principal == null) { // 로그인 안됨
+		if (principal == null) {
 			throw new MyAsyncNotFoundException("인증이 되지 않았습니다");
 		}
 
-		// 권한
-		Board boardEntity = boardRepository.findById(id)
-				.orElseThrow(() -> new MyAsyncNotFoundException("해당 게시글을 찾을 수 없습니다."));
-
-		if (principal.getId() != boardEntity.getUser().getId()) {
-			throw new MyAsyncNotFoundException("해당 게시글의 주인이 아닙니다.");
-		}
-
-		Board board = dto.toEntity(principal);
-		board.setId(id); // update의 핵심
-
-		boardRepository.save(board);
-
+		boardService.게시글수정(id, principal, dto);
 		return new CMRespDto<>(1, "업데이트 성공", null);
 	}
 
@@ -107,10 +71,7 @@ public class BoardController {
 	public String boardUpdateForm(@PathVariable int id, Model model) {
 
 		// 게시글 정보를 가지고 가야함.
-		Board boardEntity = boardRepository.findById(id)
-				.orElseThrow(() -> new MyNotFoundException(id + "번호의 게시글을 찾을 수 없습니다."));
-
-		model.addAttribute("boardEntity", boardEntity);
+		model.addAttribute("boardEntity", boardService.게시글수정페이지이동(id));
 		return "board/updateForm";
 	}
 
@@ -147,29 +108,16 @@ public class BoardController {
 //	// UPDATE TABLE board SET title = ?, content =? WHERE id = ?
 //	@PutMapping("/board/{id}")
 
-	// API(AJAX) 요청
 	@DeleteMapping("/board/{id}")
 	public @ResponseBody CMRespDto<String> deleteById(@PathVariable int id) {
 
-		// 인증이 된 사람만 함수 접근 가능!! (로그인 된 사람)
 		User principal = (User) session.getAttribute("principal");
 		if (principal == null) {
 			throw new MyAsyncNotFoundException("인증이 되지 않았습니다.");
 		}
 
-		// 권한이 있는 사람만 함수 접근 가능(principal.id == {id})
-		Board boardEntity = boardRepository.findById(id)
-				.orElseThrow(() -> new MyAsyncNotFoundException("해당글을 찾을 수 없습니다."));
 
-		if (principal.getId() != boardEntity.getUser().getId()) {
-			throw new MyAsyncNotFoundException("해당글을 삭제할 권한이 없습니다.");
-		}
-
-		try {
-			boardRepository.deleteById(id); // 오류 발생??? (id가 없으면)
-		} catch (Exception e) {
-			throw new MyAsyncNotFoundException(id + "를 찾을 수 없어서 삭제할 수 없어요.");
-		}
+		boardService.게시글삭제(id, principal);
 
 		return new CMRespDto<String>(1, "성공", null); // @ResponseBody 데이터 리턴!! String
 	}
@@ -196,20 +144,21 @@ public class BoardController {
 //		}); // 익셉션마다 다르게 처리하려면(어떻게 처리할지 모르니까) 인터페이스로 함수를 넘겨야한다
 
 		// 람다식 사용 orElseThrow
-		Board boardEntity = boardRepository.findById(id).orElseThrow(() -> new MyNotFoundException(id + " 못찾았어요")); 
-																		// 중괄호를 제거하면 무조건 리턴하겠다는 코드가 됨
+//		Board boardEntity = boardRepository.findById(id).orElseThrow(() -> new MyNotFoundException(id + " 못찾았어요")); 
+//																		// 중괄호를 제거하면 무조건 리턴하겠다는 코드가 됨
 		// {return new MyNotFoundException(id+" 못찾았어요");});
-		model.addAttribute("boardEntity", boardEntity);
+		model.addAttribute("boardEntity", boardService.게시글상세보기(id));
 		return "board/detail";
 	}
 
 	@PostMapping("/board")
 	public @ResponseBody String save(@Valid BoardSaveReqDto dto, BindingResult bindingResult) {
 
+		// 공통 로직 시작 -----------------------------
 		User principal = (User) session.getAttribute("principal");
 
-		// 인증체크
-		if (principal == null) { // 로그인 안됨
+		// 인증체크 (공통로직)
+		if (principal == null) { 
 			return Script.href("/loginForm", "잘못된 접근입니다");
 		}
 
@@ -220,18 +169,12 @@ public class BoardController {
 			}
 			return Script.back(errorMap.toString());
 		}
-
-		System.out.println(dto.getTitle());
-		System.out.println(dto.getContent());
-		// 10시 15분까지 -> BoardSaveReqDto 생성
-		// Postman으로 테스트
-		// 콘솔에 출력
-
-//			User user = new User();
-//			user.setId(3);
-//			boardRepository.save(dto.toEntity(user));
-
-		boardRepository.save(dto.toEntity(principal));
+		// 공통 로직 끝 -------------------------------
+		
+		// 핵심 로직 시작 -----------------------------
+		boardService.게시글등록(dto, principal);
+		// 핵심 로직 끝 -------------------------------
+		
 		return Script.href("/", "글쓰기 성공");
 	}
 
@@ -244,10 +187,7 @@ public class BoardController {
 	@GetMapping("/board")
 	public String home(Model model, int page) {
 
-		PageRequest pageRequest = PageRequest.of(page, 3, Sort.by(Sort.Direction.DESC, "id"));
-		Page<Board> boardsEntity = boardRepository.findAll(pageRequest);
-		model.addAttribute("boardsEntity", boardsEntity);
-		// System.out.println(boardsEntity.get(0).getUser().getUsername());
+		model.addAttribute("boardsEntity", boardService.게시글목록보기(page));
 		return "board/list";
 	}
 }
