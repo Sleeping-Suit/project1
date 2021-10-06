@@ -33,42 +33,43 @@ public class UserController {
 	private final HttpSession session;
 
 	@PostMapping("/user/{id}")
-	public @ResponseBody CMRespDto<String>update(@PathVariable int id, @Valid UserUpdateDto dto, BindingResult bindingResult) {
-		 // 유효성
-	      if (bindingResult.hasErrors()) {
-	         Map<String, String> errorMap = new HashMap<>();
-	         for (FieldError error : bindingResult.getFieldErrors()) {
-	            errorMap.put(error.getField(), error.getDefaultMessage());
-	         }
-	         throw new MyAsyncNotFoundException(errorMap.toString());
-	      }
-	      
-	      // 인증
-	      User principal = (User) session.getAttribute("principal");
-	      if (principal == null) { // 로그인 안됨
-	         throw new MyAsyncNotFoundException("인증이 되지 않았습니다");
-	      }
-	      
-	      // 권한
-	      if(principal.getId()!=id) {
-	    	  throw new MyAsyncNotFoundException("회원정보를 수정할 권한이 없습니다.");
-	      }
-	      
-	      // 핵심로직
-	      session.setAttribute("principal", principal);
-	      userService.회원수정(principal, dto);
-	      
-	      return new CMRespDto<>(1, "성공", null);
+	public @ResponseBody CMRespDto<String> update(@PathVariable int id, @Valid UserUpdateDto dto,
+			BindingResult bindingResult) {
+		// 유효성
+		if (bindingResult.hasErrors()) {
+			Map<String, String> errorMap = new HashMap<>();
+			for (FieldError error : bindingResult.getFieldErrors()) {
+				errorMap.put(error.getField(), error.getDefaultMessage());
+			}
+			throw new MyAsyncNotFoundException(errorMap.toString());
+		}
+
+		// 인증
+		User principal = (User) session.getAttribute("principal");
+		if (principal == null) { // 로그인 안됨
+			throw new MyAsyncNotFoundException("인증이 되지 않았습니다");
+		}
+
+		// 권한
+		if (principal.getId() != id) {
+			throw new MyAsyncNotFoundException("회원정보를 수정할 권한이 없습니다.");
+		}
+
+		// 세션 동기화 해주는 부분
+		principal.setEmail(dto.getEmail());
+		session.setAttribute("principal", principal);
+
+		return new CMRespDto<>(1, "성공", null);
 	}
-	
+
 	@GetMapping("/user/{id}")
 	public String userinfo(@PathVariable int id) {
 		// 기본은 userRepository.findById(id) DB에서 가져와야 함.
 		// 편법은 세션값을 가져올 수도 있다.
-		
+
 		return "user/updateForm";
 	}
-	
+
 	@GetMapping("/logout")
 	public String logout() {
 		session.invalidate(); // 세션 무효화 (jsessionId에 있는 값을 비우는 것)
@@ -133,7 +134,6 @@ public class UserController {
 			return Script.back(errorMap.toString());
 		}
 		// ---------------------------------------------------------------------공통함수
-
 
 		userService.회원가입(dto);
 		return Script.href("/loginForm"); // 리다이렉션 (300)
