@@ -125,6 +125,7 @@ public class BoardController {
 	// 쿼리스트링, 패스var => 디비 where 에 걸리는 친구들!!
 	// 1. 컨트롤러 선정, 2. Http Method 선정, 3. 받을 데이터가 있는지!! (body, 쿼리스트링, 패스var)
 	// 4. 디비에 접근을 해야하면 Model 접근하기 orElse Model에 접근할 필요가 없다.
+	
 	@GetMapping("/board/{id}")
 	public String detail(@PathVariable int id, Model model) {
 		// select * from board where id = :id
@@ -147,8 +148,11 @@ public class BoardController {
 //		Board boardEntity = boardRepository.findById(id).orElseThrow(() -> new MyNotFoundException(id + " 못찾았어요")); 
 //																		// 중괄호를 제거하면 무조건 리턴하겠다는 코드가 됨
 		// {return new MyNotFoundException(id+" 못찾았어요");});
+		
+		
+		// Board 객체에 존재하는 것 (Board(0), User(0), List<Comment>(x))
 		model.addAttribute("boardEntity", boardService.게시글상세보기(id));
-		return "board/detail";
+		return "board/detail";		// ViewResolver
 	}
 
 	@PostMapping("/board")
