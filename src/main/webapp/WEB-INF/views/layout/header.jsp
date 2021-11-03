@@ -24,7 +24,11 @@
 
 </head>
 <body>
-
+	<script>
+		// id만 적을 수 있다.
+		// 자바스크립트로 변형이 불가능
+		let globalUserId = "${sessionScope.principal.id}";
+	</script>
 	<div class="container">
 		<h2>ITLOG</h2>
 		<p>사이트 버튼 클릭해주시기 바랍니다.</p>
@@ -40,11 +44,11 @@
 					</li>
 				</c:when>
 				<c:otherwise>
-					<li class="nav-item"><a class="nav-link" href="/board/saveForm">글쓰기</a>
-					</li>
+					<li class="nav-item"><a class="nav-link"
+						href="/board/saveForm">글쓰기</a></li>
 
-					<li class="nav-item"><a class="nav-link" href="/user/${sessionScope.principal.id}">회원정보</a>
-					</li>
+					<li class="nav-item"><a class="nav-link"
+						href="/user/${sessionScope.principal.id}">회원정보</a></li>
 
 					<li class="nav-item"><a class="nav-link" href="/logout">로그아웃</a>
 					</li>
@@ -55,4 +59,4 @@
 	</div>
 
 </body>
-</html> 
+</html>

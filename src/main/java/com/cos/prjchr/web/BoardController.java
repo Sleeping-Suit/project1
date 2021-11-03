@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.cos.prjchr.domain.comment.Comment;
 import com.cos.prjchr.domain.user.User;
 import com.cos.prjchr.handler.ex.MyAsyncNotFoundException;
+import com.cos.prjchr.handler.ex.MyNotFoundException;
 import com.cos.prjchr.service.BoardService;
+import com.cos.prjchr.service.CommentService;
 import com.cos.prjchr.util.Script;
 import com.cos.prjchr.web.dto.BoardSaveReqDto;
 import com.cos.prjchr.web.dto.CMRespDto;
@@ -35,6 +37,7 @@ public class BoardController {
 
 	// DI
 	private final BoardService boardService;
+	private final CommentService commentService;
 	private final HttpSession session;
 
 	@PostMapping("/board/{boardId}/comment")
@@ -43,14 +46,17 @@ public class BoardController {
 		// 1. DTO로 데이터 받기
 
 		// 2. Comment 객체 만들기 (빈객체 생성)
-		Comment comment = new Comment();
 
 		// 3. Comment 객체에 값 추가하기 , id : X, content: DTO값, user: 세션값, board: boardId로
 		// findById하세요
 		User principal = (User) session.getAttribute("principal");
 
+		if (principal == null) {
+			throw new MyNotFoundException("인증이 되지 않았습니다");
+		}
+		
 		// 4. save 하기
-		boardService.댓글등록(boardId, dto, principal);
+		commentService.댓글등록(boardId, dto, principal);
 		return "redirect:/board/" + boardId;
 	}
 
