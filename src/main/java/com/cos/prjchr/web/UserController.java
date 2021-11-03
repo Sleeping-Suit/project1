@@ -12,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cos.prjchr.domain.user.User;
@@ -32,7 +33,7 @@ public class UserController {
 	private final UserService userService;
 	private final HttpSession session;
 
-	@PostMapping("/user/{id}")
+	@PutMapping("/api/user/{id}")
 	public @ResponseBody CMRespDto<String> update(@PathVariable int id, @Valid UserUpdateDto dto,
 			BindingResult bindingResult) {
 		// 유효성
@@ -46,9 +47,6 @@ public class UserController {
 
 		// 인증
 		User principal = (User) session.getAttribute("principal");
-		if (principal == null) { // 로그인 안됨
-			throw new MyAsyncNotFoundException("인증이 되지 않았습니다");
-		}
 
 		// 권한
 		if (principal.getId() != id) {
@@ -62,7 +60,7 @@ public class UserController {
 		return new CMRespDto<>(1, "성공", null);
 	}
 
-	@GetMapping("/user/{id}")
+	@GetMapping("/api/user/{id}")
 	public String userinfo(@PathVariable int id) {
 		// 기본은 userRepository.findById(id) DB에서 가져와야 함.
 		// 편법은 세션값을 가져올 수도 있다.
